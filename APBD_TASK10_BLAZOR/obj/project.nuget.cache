@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "SO1VCT8o/m8=",
+  "success": true,
+  "projectFilePath": "/Users/szymonswierzynski/Downloads/PJATK/Sem4/APBD/APBD_TASK10_BLAZOR/APBD_TASK10_BLAZOR/APBD_TASK10_BLAZOR.csproj",
+  "expectedPackageFiles": [
+    "/Users/szymonswierzynski/.nuget/packages/microsoft.aspnetcore.app.internal.assets/10.0.3/microsoft.aspnetcore.app.internal.assets.10.0.3.nupkg.sha512"
+  ],
+  "logs": []
+}

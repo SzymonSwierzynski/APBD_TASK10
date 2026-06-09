@@ -1,0 +1,109 @@
+@page "/students"
+@inject StudentsApiClient Api
+@inject ObservedStudentsState Observed
+@inject NavigationManager Navigation
+@implements IDisposable
+
+<PageTitle>Students</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="mb-0">Students</h1>
+    <a class="btn btn-primary" href="students/create">+ New student</a>
+</div>
+
+<ErrorBoundary @ref="_errorBoundary">
+    <ChildContent>
+        @if (_loading)
+        {
+            <LoadingPanel Message="Loading students from the API..."/>
+        }
+        else if (_error is not null)
+        {
+            <ApiError Message="@_error" OnRetry="LoadAsync"/>
+        }
+        else
+        {
+            <DataTable Items="_students">
+                <HeaderTemplate>
+                    <th>Index</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th class="text-center">Semester</th>
+                    <th class="text-end">Actions</th>
+                </HeaderTemplate>
+                <RowTemplate Context="student">
+                    <td>
+                        <code>@student.IndexNumber</code>
+                    </td>
+                    <td>@student.FullName</td>
+                    <td>@student.Email</td>
+                    <td class="text-center">@student.Semester</td>
+                    <td class="text-end">
+                        <a class="btn btn-sm btn-outline-secondary"
+                           href="@($"students/{student.Id}")">
+                            Details
+                        </a>
+                        @if (Observed.IsObserved(student.Id))
+                        {
+                            <button class="btn btn-sm btn-warning"
+                                    @onclick="() => Observed.Remove(student.Id)">
+                                ★ Observed
+                            </button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-sm btn-outline-warning"
+                                    @onclick="() => Observed.Add(student)">
+                                ☆ Observe
+                            </button>
+                        }
+                    </td>
+                </RowTemplate>
+                <EmptyTemplate>
+                    No students yet. <a href="students/create">Create the first one.</a>
+                </EmptyTemplate>
+            </DataTable>
+        }
+    </ChildContent>
+    <ErrorContent Context="ex">
+        <ApiError Title="Unexpected error"
+                  Message="The student list could not be displayed."/>
+    </ErrorContent>
+</ErrorBoundary>
+
+@code {
+    private IReadOnlyList<StudentDto> _students = [];
+    private bool _loading = true;
+    private string? _error;
+    private ErrorBoundary? _errorBoundary;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Observed.OnChange += OnObservedChanged;
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        _error = null;
+        _errorBoundary?.Recover();
+
+        try
+        {
+            _students = await Api.GetStudentsAsync();
+        }
+        catch (ApiException ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void OnObservedChanged() => InvokeAsync(StateHasChanged);
+
+    public void Dispose() => Observed.OnChange -= OnObservedChanged;
+}

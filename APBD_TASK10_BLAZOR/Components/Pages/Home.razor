@@ -1,0 +1,38 @@
+﻿@page "/"
+
+<PageTitle>Student Panel</PageTitle>
+
+<h1>Student Panel</h1>
+<p class="lead">A small Blazor panel for managing students and their courses.</p>
+
+<p>This app loads its data from a REST API over HTTP, uses validated forms, routing, shared state, and a small JavaScript Interop example.</p>
+
+<div class="row g-3 mt-2">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">Students</h5>
+                <p class="card-text">Browse the student list loaded from the API.</p>
+                <a class="btn btn-primary" href="students">Open students</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">New student</h5>
+                <p class="card-text">Create a student with a validated form.</p>
+                <a class="btn btn-outline-primary" href="students/create">Create student</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">Observed</h5>
+                <p class="card-text">See the students you marked as observed.</p>
+                <a class="btn btn-outline-primary" href="observed">Observed students</a>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,23 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v10.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v10.0": {
+      "APBD_TASK10_BLAZOR/1.0.0": {
+        "runtime": {
+          "APBD_TASK10_BLAZOR.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "APBD_TASK10_BLAZOR/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

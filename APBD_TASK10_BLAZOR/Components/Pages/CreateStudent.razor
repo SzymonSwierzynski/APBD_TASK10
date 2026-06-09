@@ -1,0 +1,123 @@
+@page "/students/create"
+@inject StudentsApiClient Api
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+
+<PageTitle>New student</PageTitle>
+
+<div class="mb-3">
+    <a class="btn btn-link px-0" href="students">&larr; Back to students</a>
+</div>
+
+<h1 class="mb-4">New student</h1>
+
+<div class="row">
+    <div class="col-lg-7">
+        <EditForm Model="_model" OnValidSubmit="SubmitAsync">
+            <DataAnnotationsValidator/>
+            <ValidationSummary class="text-danger"/>
+
+            <div class="mb-3">
+                <label class="form-label" for="indexNumber">Index number</label>
+                <InputText id="indexNumber" class="form-control" @bind-Value="_model.IndexNumber"/>
+                <ValidationMessage For="() => _model.IndexNumber" class="text-danger small"/>
+            </div>
+
+            <div class="row">
+                <div class="col-sm-6 mb-3">
+                    <label class="form-label" for="firstName">First name</label>
+                    <InputText id="firstName" class="form-control" @bind-Value="_model.FirstName"/>
+                    <ValidationMessage For="() => _model.FirstName" class="text-danger small"/>
+                </div>
+                <div class="col-sm-6 mb-3">
+                    <label class="form-label" for="lastName">Last name</label>
+                    <InputText id="lastName" class="form-control" @bind-Value="_model.LastName"/>
+                    <ValidationMessage For="() => _model.LastName" class="text-danger small"/>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label" for="email">Email</label>
+                <InputText id="email" type="email" class="form-control" @bind-Value="_model.Email"/>
+                <ValidationMessage For="() => _model.Email" class="text-danger small"/>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label" for="semester">Semester (1-8)</label>
+                <InputNumber id="semester" class="form-control" @bind-Value="_model.Semester"/>
+                <ValidationMessage For="() => _model.Semester" class="text-danger small"/>
+            </div>
+
+            @if (_error is not null)
+            {
+                <div class="alert alert-danger">@_error</div>
+            }
+
+            <button type="submit" class="btn btn-primary" disabled="@_submitting">
+                @(_submitting ? "Creating..." : "Create student")
+            </button>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private readonly CreateStudentDto _model = new();
+    private bool _submitting;
+    private string? _error;
+
+    private IJSObjectReference? _jsModule;
+
+    private async Task SubmitAsync()
+    {
+        _submitting = true;
+        _error = null;
+        try
+        {
+            var created = await Api.CreateStudentAsync(_model);
+
+            if (_jsModule is not null)
+            {
+                await _jsModule.InvokeVoidAsync("saveLastSemester", _model.Semester);
+            }
+
+            Navigation.NavigateTo($"students/{created.Id}");
+        }
+        catch (ApiException ex)
+        {
+            _error = ex.Message;
+            _submitting = false;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+
+        _jsModule = await JS.InvokeAsync<IJSObjectReference>("import", "./js/interop.js");
+
+        var saved = await _jsModule.InvokeAsync<string?>("getLastSemester");
+        if (int.TryParse(saved, out var semester) && semester is >= 1 and <= 8)
+        {
+            _model.Semester = semester;
+            StateHasChanged();
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_jsModule is not null)
+        {
+            try
+            {
+                await _jsModule.DisposeAsync();
+            }
+            catch (JSDisconnectedException)
+            {
+            }
+        }
+    }
+}

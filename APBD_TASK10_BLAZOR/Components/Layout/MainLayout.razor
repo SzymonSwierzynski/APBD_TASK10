@@ -1,0 +1,63 @@
+@inherits LayoutComponentBase
+@inject ObservedStudentsState Observed
+@inject NavigationManager Navigation
+@implements IDisposable
+
+<div class="page">
+    <div class="sidebar">
+        <NavMenu/>
+    </div>
+
+    <main>
+        <div class="top-row px-4 d-flex justify-content-end align-items-center gap-3">
+            <a class="observed-counter" href="observed">
+                👁 Observed: <span class="badge bg-warning text-dark">@Observed.Count</span>
+            </a>
+            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+        </div>
+
+        <article class="content px-4">
+            <ErrorBoundary @ref="_errorBoundary">
+                <ChildContent>
+                    @Body
+                </ChildContent>
+                <ErrorContent>
+                    <div class="alert alert-danger">
+                        <h4>Unexpected error</h4>
+                        <p>Sorry, something went wrong while rendering this page.</p>
+                        <a class="btn btn-sm btn-outline-danger" href="">Go to home</a>
+                    </div>
+                </ErrorContent>
+            </ErrorBoundary>
+        </article>
+    </main>
+</div>
+
+<div id="blazor-error-ui" data-nosnippet>
+    An unhandled error has occurred.
+    <a href="." class="reload">Reload</a>
+    <span class="dismiss">🗙</span>
+</div>
+
+@code {
+    private ErrorBoundary? _errorBoundary;
+
+    protected override void OnInitialized()
+    {
+        Observed.OnChange += OnStateChanged;
+        Navigation.LocationChanged += OnLocationChanged;
+    }
+
+    private void OnStateChanged() => InvokeAsync(StateHasChanged);
+
+    private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    {
+        _errorBoundary?.Recover();
+    }
+
+    public void Dispose()
+    {
+        Observed.OnChange -= OnStateChanged;
+        Navigation.LocationChanged -= OnLocationChanged;
+    }
+}

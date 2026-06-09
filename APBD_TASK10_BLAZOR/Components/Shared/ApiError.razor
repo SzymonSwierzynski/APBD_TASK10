@@ -1,0 +1,20 @@
+<div class="alert alert-danger d-flex flex-column gap-2" role="alert">
+    <div>
+        <span class="fw-semibold">@Title</span>
+        <div>@Message</div>
+    </div>
+    @if (OnRetry.HasDelegate)
+    {
+        <div>
+            <button class="btn btn-sm btn-outline-danger" @onclick="OnRetry">Try again</button>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = "Something went wrong";
+    [Parameter, EditorRequired] public string Message { get; set; } = "";
+
+    [Parameter]
+    public EventCallback OnRetry { get; set; }
+}

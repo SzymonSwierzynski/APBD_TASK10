@@ -1,0 +1,80 @@
+@page "/observed"
+@inject ObservedStudentsState Observed
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+
+<PageTitle>Observed students</PageTitle>
+
+<h1 class="mb-3">Observed students</h1>
+<p class="text-muted">Students you marked as observed. The counter in the top bar reflects this list.</p>
+
+<DataTable Items="Observed.Observed.ToList()">
+    <HeaderTemplate>
+        <th>Index</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th class="text-center">Semester</th>
+        <th class="text-end">Actions</th>
+    </HeaderTemplate>
+    <RowTemplate Context="student">
+        <td>
+            <code>@student.IndexNumber</code>
+        </td>
+        <td>@student.FullName</td>
+        <td>@student.Email</td>
+        <td class="text-center">@student.Semester</td>
+        <td class="text-end">
+            <a class="btn btn-sm btn-outline-secondary" href="@($"students/{student.Id}")">Details</a>
+            <button class="btn btn-sm btn-outline-danger" @onclick="() => RemoveAsync(student)">Remove</button>
+        </td>
+    </RowTemplate>
+    <EmptyTemplate>
+        You are not observing any students. Open a student and click <em>Observe</em>.
+    </EmptyTemplate>
+</DataTable>
+
+@code {
+    private IJSObjectReference? _jsModule;
+
+    protected override void OnInitialized() => Observed.OnChange += OnObservedChanged;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _jsModule = await JS.InvokeAsync<IJSObjectReference>("import", "./js/interop.js");
+        }
+    }
+
+    private async Task RemoveAsync(StudentDto student)
+    {
+        if (_jsModule is not null)
+        {
+            var confirmed = await _jsModule.InvokeAsync<bool>(
+                "confirmDialog", $"Stop observing {student.FullName}?");
+            if (!confirmed)
+            {
+                return;
+            }
+        }
+
+        Observed.Remove(student.Id);
+    }
+
+    private void OnObservedChanged() => InvokeAsync(StateHasChanged);
+
+    public async ValueTask DisposeAsync()
+    {
+        Observed.OnChange -= OnObservedChanged;
+        if (_jsModule is not null)
+        {
+            try
+            {
+                await _jsModule.DisposeAsync();
+            }
+            catch (JSDisconnectedException)
+            {
+            }
+        }
+    }
+}
